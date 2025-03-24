@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flow Data Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .data-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Flow Data Generator</h1>
+        <a href="{% url 'data_view' %}" class="btn">View All Data</a>
+    </div>
+    
+    <div class="data-container">
+        <h2>Current Flow Data</h2>
+        <p>Daily Flow: <span id="daily-flow" class="value">-</span></p>
+        <p>Total Flow: <span id="total-flow" class="value">-</span></p>
+        <p>Auto-generate every 24 hours: <input type="checkbox" id="auto-generate" checked></p>
+        <button id="generate-btn" class="btn">Generate Now</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dailyFlowElement = document.getElementById('daily-flow');
+            const totalFlowElement = document.getElementById('total-flow');
+            const generateBtn = document.getElementById('generate-btn');
+            const autoGenerateCheckbox = document.getElementById('auto-generate');
+            let intervalId;
+
+            function generateData() {
+                fetch('/trigger-data-generation/', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    dailyFlowElement.textContent = data.daily_flow;
+                    totalFlowElement.textContent = data.total_flow;
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            function startAutoGenerate() {
+                if (autoGenerateCheckbox.checked) {
+                    intervalId = setInterval(generateData, 86400000); // 24 hours 
+                } else {
+                    clearInterval(intervalId);
+                }
+            }
+
+            generateBtn.addEventListener('click', generateData);
+            autoGenerateCheckbox.addEventListener('change', startAutoGenerate);
+
+            // Initialize with one data point
+            generateData();
+            startAutoGenerate();
+        });
+    </script>
+</body>
+</html>
